@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Контролна карта — Проверка на магазин</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+  :root {
+    --navy:    #0B1628;
+    --indigo:  #3B5BDB;
+    --indigo2: #4C6EF5;
+    --indigo-s:#EDF2FF;
+    --emerald: #0CA678;
+    --emerald-s:#E6FCF5;
+    --rose:    #F03E3E;
+    --rose-s:  #FFF5F5;
+    --amber:   #F59F00;
+    --amber-s: #FFF9DB;
+    --slate:   #495057;
+    --slate-l: #DEE2E6;
+    --slate-xl:#F8F9FA;
+    --red-b:   #C92A2A;
+    --red-b-s: #FFE3E3;
+    --white:   #FFFFFF;
+    --text:    #212529;
+    --radius:  10px;
+    --shadow:  0 2px 12px rgba(0,0,0,.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #F1F3F5;
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--navy);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,.3);
+  }
+  .topbar-accent { height: 4px; background: var(--indigo2); }
+  .topbar-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; gap: 12px;
+  }
+  .topbar h1 {
+    font-size: 14px; font-weight: 600; color: #fff;
+    letter-spacing: .02em; white-space: nowrap;
+  }
+  .topbar-score {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px; font-weight: 600;
+    color: #fff; white-space: nowrap;
+  }
+  .topbar-score span { font-size: 12px; color: #ADB5BD; font-family: 'IBM Plex Sans', sans-serif; display: block; text-align: right; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--navy);
+    display: flex; border-top: 1px solid rgba(255,255,255,.07);
+  }
+  .nav-tab {
+    flex: 1; padding: 10px 4px; text-align: center;
+    font-size: 11px; font-weight: 500; color: #868E96;
+    cursor: pointer; transition: all .15s; border: none;
+    background: none; letter-spacing: .02em;
+  }
+  .nav-tab.active { color: var(--indigo2); border-bottom: 2px solid var(--indigo2); }
+  .nav-tab:hover:not(.active) { color: #CED4DA; }
+
+  /* ── INFO PANEL ── */
+  .info-panel {
+    background: var(--white);
+    margin: 12px; border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow);
+  }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .info-field label {
+    display: block; font-size: 10px; font-weight: 600;
+    color: var(--slate); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px;
+  }
+  .info-field input {
+    width: 100%; padding: 8px 10px; border: 1.5px solid var(--slate-l);
+    border-radius: 6px; font-size: 14px; font-family: inherit;
+    color: var(--text); background: var(--slate-xl);
+    transition: border-color .15s;
+  }
+  .info-field input:focus { outline: none; border-color: var(--indigo2); background: #fff; }
+  .info-field.full { grid-column: 1/-1; }
+
+  /* ── SECTION HEADER ── */
+  .section-hdr {
+    margin: 0 12px 0; padding: 10px 14px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    font-size: 13px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: .02em;
+  }
+  .section-hdr .sect-score {
+    margin-left: auto; font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px; font-weight: 600;
+    background: rgba(255,255,255,.15); padding: 2px 10px;
+    border-radius: 20px;
+  }
+  .section-hdr .sect-status {
+    font-size: 11px; font-weight: 500; padding: 2px 8px;
+    border-radius: 20px; background: rgba(255,255,255,.15);
+  }
+
+  /* ── CRITERIA CARD ── */
+  .criteria-card {
+    background: var(--white);
+    margin: 0 12px; border-radius: 0;
+    box-shadow: none; border-top: 1px solid var(--slate-l);
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .criteria-card:last-child { border-radius: 0 0 var(--radius) var(--radius); margin-bottom: 14px; box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+  .criteria-card.blocking { background: var(--red-b-s); border-top-color: #FFC9C9; }
+  .criteria-card.result-row {
+    background: var(--emerald-s);
+    border-top: 2px solid var(--emerald);
+  }
+
+  .criteria-label {
+    font-size: 13px; line-height: 1.45; color: var(--text);
+    font-weight: 400;
+  }
+  .criteria-label .star { color: var(--indigo2); font-weight: 700; }
+  .criteria-label .star3 { color: var(--rose); font-weight: 700; }
+  .criteria-label .block-tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    color: var(--red-b); background: var(--red-b-s);
+    border: 1px solid #FFC9C9; padding: 1px 6px; border-radius: 4px;
+    margin-right: 4px; letter-spacing: .04em;
+  }
+  .criteria-num {
+    font-size: 10px; color: var(--slate); font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 2px;
+  }
+
+  /* ── SCORE BUTTONS ── */
+  .score-row {
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  }
+  .score-btn {
+    flex: 1; min-width: 52px; padding: 10px 6px;
+    border: 2px solid var(--slate-l); border-radius: 8px;
+    background: var(--slate-xl); font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .12s; font-family: 'IBM Plex Mono', monospace;
+    color: var(--slate); text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .score-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+  .score-btn.s1.active    { background: var(--emerald); border-color: var(--emerald); color: #fff; }
+  .score-btn.s05.active   { background: var(--amber); border-color: var(--amber); color: #fff; }
+  .score-btn.s0.active    { background: var(--rose); border-color: var(--rose); color: #fff; }
+  .score-btn.snp.active   { background: var(--slate); border-color: var(--slate); color: #fff; }
+  .score-btn.sda.active   { background: var(--emerald); border-color: var(--emerald); color: #fff; }
+  .score-btn.sne.active   { background: var(--red-b); border-color: var(--red-b); color: #fff; }
+
+  /* ── NOTE FIELD ── */
+  .note-row { display: flex; gap: 6px; flex-direction: column; }
+  .note-row.expanded {}
+  .note-toggle {
+    font-size: 11px; color: var(--indigo2); background: none; border: none;
+    cursor: pointer; padding: 0; font-family: inherit; text-align: left;
+  }
+  .note-input {
+    width: 100%; padding: 7px 10px; border: 1.5px solid var(--slate-l);
+    border-radius: 6px; font-size: 13px; font-family: inherit;
+    color: var(--text); resize: vertical; min-height: 52px;
+    transition: border-color .15s;
+  }
+  .note-input:focus { outline: none; border-color: var(--indigo2); }
+  .repeat-row {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .repeat-label { font-size: 11px; color: var(--slate); }
+  .repeat-btn {
+    padding: 4px 12px; border: 1.5px solid var(--slate-l);
+    border-radius: 6px; background: var(--slate-xl);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    font-family: inherit; color: var(--slate);
+    transition: all .12s;
+  }
+  .repeat-btn.active-y { background: var(--rose-s); border-color: var(--rose); color: var(--rose); }
+  .repeat-btn.active-n { background: var(--emerald-s); border-color: var(--emerald); color: var(--emerald); }
+  .deadline-input {
+    padding: 4px 8px; border: 1.5px solid var(--slate-l);
+    border-radius: 6px; font-size: 12px; font-family: inherit;
+    color: var(--text); background: var(--slate-xl); flex: 1; min-width: 120px;
+  }
+  .deadline-input:focus { outline: none; border-color: var(--indigo2); }
+
+  /* Result summary row */
+  .result-row-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .result-label { font-size: 12px; font-weight: 700; color: var(--emerald); }
+  .result-score {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px; font-weight: 700; color: var(--emerald);
+  }
+  .result-badge {
+    font-size: 11px; font-weight: 700; padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .badge-ok  { background: var(--emerald); color: #fff; }
+  .badge-warn{ background: var(--amber); color: #fff; }
+  .badge-bad { background: var(--rose); color: #fff; }
+
+  /* ── BLOCKING BANNER ── */
+  .blocking-banner {
+    margin: 0 12px 0; background: var(--red-b-s);
+    border: 2px solid #FFC9C9; border-radius: var(--radius) var(--radius) 0 0;
+    padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .blocking-banner .icon { font-size: 18px; }
+  .blocking-banner .text { font-size: 12px; font-weight: 600; color: var(--red-b); line-height: 1.4; }
+
+  /* ── SUMMARY VIEW ── */
+  .summary-view { padding: 12px; }
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .kpi-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow);
+    border-top: 3px solid var(--indigo2);
+  }
+  .kpi-card.ok   { border-top-color: var(--emerald); }
+  .kpi-card.warn { border-top-color: var(--amber); }
+  .kpi-card.bad  { border-top-color: var(--rose); }
+  .kpi-card.block{ border-top-color: var(--red-b); }
+  .kpi-label { font-size: 10px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .kpi-value { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 700; color: var(--text); }
+  .kpi-sub { font-size: 11px; color: var(--slate); margin-top: 2px; }
+
+  .sector-summary {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px;
+  }
+  .sector-sum-hdr {
+    background: var(--navy); color: #fff;
+    padding: 10px 14px; font-size: 12px; font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .sector-sum-row {
+    display: flex; align-items: center; padding: 9px 14px;
+    border-top: 1px solid var(--slate-l); gap: 8px;
+  }
+  .sector-sum-row .name { flex: 1; font-size: 12px; color: var(--text); }
+  .sector-sum-row .pct  {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 600; min-width: 44px; text-align: right;
+  }
+  .sector-sum-row .bar-wrap { width: 80px; height: 6px; background: var(--slate-l); border-radius: 3px; }
+  .sector-sum-row .bar { height: 100%; border-radius: 3px; transition: width .3s; }
+  .pct-ok   { color: var(--emerald); } .bar-ok   { background: var(--emerald); }
+  .pct-warn { color: var(--amber);   } .bar-warn { background: var(--amber); }
+  .pct-bad  { color: var(--rose);    } .bar-bad  { background: var(--rose); }
+
+  /* ── HISTORY VIEW ── */
+  .history-view { padding: 12px; }
+  .history-card {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden;
+  }
+  .history-card-hdr {
+    background: var(--navy); color: #fff;
+    padding: 10px 14px; font-size: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .history-card-hdr .hdate {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+  }
+  .history-card-hdr .hshop { font-size: 11px; color: #ADB5BD; }
+  .history-card-body { padding: 12px 14px; }
+  .history-overall {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--slate-l);
+  }
+  .history-pct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px; font-weight: 700;
+  }
+  .history-sectors { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .hs-item { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; }
+  .hs-name { color: var(--slate); }
+  .hs-pct  { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 12px; }
+
+  .trend-section { margin-bottom: 14px; }
+  .trend-title { font-size: 12px; font-weight: 600; color: var(--slate); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .trend-chart { display: flex; gap: 6px; align-items: flex-end; height: 60px; }
+  .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .trend-bar { width: 100%; border-radius: 3px 3px 0 0; transition: height .3s; min-height: 3px; }
+  .trend-bar-label { font-size: 9px; font-family: 'IBM Plex Mono', monospace; color: var(--slate); }
+  .trend-bar-pct { font-size: 10px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+  /* Chronic issues */
+  .chronic-item {
+    padding: 8px 10px; border-radius: 6px;
+    margin-bottom: 6px; border-left: 3px solid var(--rose);
+    background: var(--rose-s); font-size: 12px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+  }
+  .chronic-name { flex: 1; color: var(--text); line-height: 1.4; }
+  .chronic-count { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700; color: var(--rose); white-space: nowrap; }
+
+  /* ── SAVE BUTTON ── */
+  .save-bar {
+    position: sticky; bottom: 0; background: var(--navy);
+    padding: 12px 16px; display: flex; gap: 10px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.2);
+  }
+  .btn-save {
+    flex: 1; padding: 14px; border: none; border-radius: var(--radius);
+    background: var(--indigo2); color: #fff;
+    font-size: 15px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: all .15s; letter-spacing: .02em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-save:hover { background: #4263EB; transform: translateY(-1px); }
+  .btn-save:active { transform: translateY(0); }
+  .btn-clear {
+    padding: 14px 16px; border: 2px solid rgba(255,255,255,.2);
+    border-radius: var(--radius); background: transparent; color: #ADB5BD;
+    font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-clear:hover { border-color: rgba(255,255,255,.4); color: #fff; }
+
+  /* Progress indicator */
+  .progress-bar-wrap {
+    height: 3px; background: rgba(255,255,255,.1);
+    margin: 0 16px 8px;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--indigo2);
+    border-radius: 2px; transition: width .3s;
+  }
+  .progress-text {
+    text-align: center; font-size: 10px; color: #868E96;
+    margin-bottom: 6px; letter-spacing: .04em;
+  }
+
+  /* ── BONUS BANNER ── */
+  .bonus-banner {
+    padding: 14px 16px; border-radius: var(--radius);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 700;
+  }
+  .bonus-yes { background: var(--emerald); color: #fff; }
+  .bonus-no  { background: var(--red-b); color: #fff; }
+  .bonus-icon { font-size: 24px; }
+
+  .empty-history {
+    text-align: center; padding: 40px 20px; color: var(--slate);
+    font-size: 13px; line-height: 1.6;
+  }
+
+  .prev-row {
+    background: var(--indigo-s); border-radius: 6px;
+    padding: 8px 12px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px;
+  }
+  .prev-row .prev-label { color: var(--slate); }
+  .prev-row .prev-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700; color: var(--indigo);
+  }
+
+  @media (min-width: 600px) {
+    .topbar-inner { padding: 14px 24px; }
+    .info-panel { margin: 16px 24px; }
+    .section-hdr, .blocking-banner, .criteria-card { margin-left: 24px; margin-right: 24px; }
+    .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+    .history-sectors { grid-template-columns: repeat(3, 1fr); }
+    .save-bar { padding: 14px 24px; }
+    .summary-view, .history-view { padding: 16px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-accent"></div>
+  <div class="topbar-inner">
+    <h1>Контролна карта</h1>
+    <div class="topbar-score">
+      <span id="topScoreLabel">0 / 0</span>
+      <span id="topScorePct">– %</span>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchView('check')">📋 Проверка</button>
+    <button class="nav-tab" onclick="switchView('summary')">📊 Резюме</button>
+    <button class="nav-tab" onclick="switchView('history')">📈 История</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ CHECK VIEW -->
+<div id="view-check" class="view active">
+  <div class="info-panel">
+    <div class="info-grid">
+      <div class="info-field full">
+        <label>Магазин</label>
+        <input type="text" id="shopName" placeholder="Въведете магазин..." autocomplete="off">
+      </div>
+      <div class="info-field">
+        <label>Дата</label>
+        <input type="date" id="checkDate">
+      </div>
+      <div class="info-field">
+        <label>Регионален управител</label>
+        <input type="text" id="managerName" placeholder="Име..." autocomplete="off">
+      </div>
+      <div class="info-field full" id="prevInfoRow" style="display:none">
+        <div class="prev-row">
+          <span class="prev-label">Предишна проверка: <span id="prevDateLabel">—</span></span>
+          <span class="prev-val" id="prevPctLabel">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="checkContent"></div>
+
+  <div class="save-bar">
+    <button class="btn-save" onclick="saveCheck()">💾 Запази проверката</button>
+    <button class="btn-clear" onclick="clearCheck()">✕ Изчисти</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ SUMMARY VIEW -->
+<div id="view-summary" class="view">
+  <div class="summary-view" id="summaryContent">
+    <p style="color:var(--slate);font-size:13px;padding:20px 0;text-align:center">Попълнете проверката, за да видите резюмето.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ HISTORY VIEW -->
+<div id="view-history" class="view">
+  <div id="histFilterBar" style="display:none;background:#fff;border-bottom:1px solid #E2E8F0;padding:10px 14px;position:sticky;top:89px;z-index:50;">
+    <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Филтър по магазин</div>
+    <div id="shopFilterBtns" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+  </div>
+  <div class="history-view" id="historyContent">
+    <p class="empty-history">Все още няма запазени проверки.<br>Попълнете и запазете първата проверка.</p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA: пълните критерии от оригиналния файл
+// ═══════════════════════════════════════════════════════════════
+const BLOCKING = [
+  { id:'b1', text:'Генерално добра форма на магазина — равни палетолинии' },
+  { id:'b2', text:'Проверка на всички цели палета (неотворени сухи смеси за вече изтекъл срок)' },
+  { id:'b3', text:'Всички в магазина с униформи и баджове ли са?' },
+  { id:'b4', text:'Изрядна документация на обекта и пожарогасители в срок на годност' },
+];
+
+const GENERAL_CRITERIA = [
+  { key:'clean',    label:'Чистота на под / стелажи / рафтове; прах по стока; празни опаковки и картони по земята' },
+  { key:'labels',   label:'Ценови етикети (наличие + съответствие); промо цена; промо етикети; изтекли промоции' },
+  { key:'arrange',  label:'Стока по земята; подредба хоризонтал/блок; стока зад друга без лице; запълненост' },
+  { key:'pallet',   label:'Отстояния и височина на палетозоната; палетолинии 2×2 или 4×4' },
+  { key:'corridor', label:'Коридори и стелажи — в равни форми и без излизане на стока в коридорите' },
+  { key:'high',     label:'Висока зона — надписана / пълна / подредена' },
+];
+
+const SECTORS = [
+  {
+    id:'s1', name:'1. Плочки и ламинат', color:'#3B5BDB',
+    specific:[
+      { id:'s1_1', stars:2, text:'Нареждане по планограма от ЦО или максимална близост при липса' },
+      { id:'s1_2', stars:2, text:'Стена с всички модели 120×60 / 60×60 — изложена и пълна' },
+      { id:'s1_3', stars:2, text:'Има ли неизложени модели плочки' },
+      { id:'s1_4', stars:1, text:'Палети под стелажа — подредени правилно' },
+      { id:'s1_5', stars:1, text:'Правилно етикиране с ламинирани етикети и без липса' },
+    ]
+  },
+  {
+    id:'s2', name:'2. Строителство', color:'#0CA678',
+    specific:[
+      { id:'s2_1', stars:2, text:'Нареждане по планограма или максимална близост при липса' },
+      { id:'s2_2', stars:1, text:'Подредба по приложение: покрив и отичане / изолация / гипскартон и шпакловане и т.н.' },
+      { id:'s2_3', stars:1, text:'Палетолинията в логическа последователност на материалите по група на продукт' },
+      { id:'s2_4', stars:1, text:'Налични видими мостри с цени на всички неизложени продукти' },
+    ]
+  },
+  {
+    id:'s3', name:'3. Баня и ВиК', color:'#0C8599',
+    specific:[
+      { id:'s3_1', stars:2, text:'Нареждане по планограма или максимална близост при липса' },
+      { id:'s3_2', stars:1, text:'Изложени всички най-нови мостри душ кабини и паравани; последните бройки намалени на червен етикет' },
+      { id:'s3_3', stars:1, text:'Всички окачени чинии монтирани към структури за вграждане' },
+      { id:'s3_4', stars:1, text:'Няма неокачени мебели за баня и огледала (празни дупки)' },
+      { id:'s3_5', stars:1, text:'Мебелите за баня разделени на стенни и стоящи' },
+      { id:'s3_6', stars:1, text:'Смесителите подредени по вид и дължина на чучура (при липса на планограма)' },
+      { id:'s3_7', stars:1, text:'Всички душове, хидромасажи и смесители за вграждане монтирани и изложени мостри' },
+    ]
+  },
+  {
+    id:'s4', name:'4. Текстил', color:'#7048E8',
+    specific:[
+      { id:'s4_1', stars:2, text:'Нареждане по планограма или изисквания на ЦО при липса' },
+    ]
+  },
+  {
+    id:'s5', name:'5. Подови настилки и килими', color:'#1971C2',
+    specific:[
+      { id:'s5_1', stars:2, text:'Нареждане по планограма или максимална близост при липса' },
+      { id:'s5_2', stars:1, text:'Празни шпули на стойките → изпратени необходими бройки към ЦО' },
+      { id:'s5_3', stars:1, text:'Килимите по планограма в мостреника' },
+      { id:'s5_4', stars:1, text:'Килими на маси / палети подредени по размер и вид (планограма при наличие)' },
+    ]
+  },
+  {
+    id:'s6', name:'6. Домашни потреби', color:'#E67700',
+    specific:[
+      { id:'s6_1', stars:2, text:'Нареждане по планограма или максимална близост при по-голяма номенклатура' },
+      { id:'s6_2', stars:1, text:'Логическо подреждане на клетките при липса на планограма (готвене/сервиране/почистване/пране и т.н.)' },
+    ]
+  },
+  {
+    id:'s7', name:'7. Бои и облицовки', color:'#C2255C',
+    note:'(ако облицовките са в сектор плочки — пак се попълва тук)',
+    specific:[
+      { id:'s7_1', stars:2, text:'Нареждане по планограма или максимална близост при липса' },
+      { id:'s7_2', stars:1, text:'Всички мострени ПВЦ пана — едно до друго в цял размер' },
+      { id:'s7_3', stars:1, text:'Стоки на палет — подредени по вид и логика с цена, не нахвърляни' },
+      { id:'s7_4', stars:1, text:'Машини за тониране — почистени и презентирани с картели (при наличие на машини)' },
+    ]
+  },
+  {
+    id:'s8', name:'8. Ел. и градински машини', color:'#2F9E44',
+    specific:[
+      { id:'s8_1', stars:2, text:'Нареждане по планограма или насоки от ЦО при липса — спазени' },
+      { id:'s8_2', stars:1, text:'Сглобени мостри на всички продукти (косачки, мотофрези, ремаркета, триони, тримери и коси, помпи, водоструйки, генератори) — проверка по наличност' },
+    ]
+  },
+  {
+    id:'s9', name:'9. Градина', color:'#5C940D',
+    specific:[
+      { id:'s9_1', stars:2, text:'Нареждане по планограма или насоки от ЦО при наличие' },
+      { id:'s9_2', stars:1, text:'Изложена сезонна стока спрямо изискванията от ЦО за сметка на несезонна' },
+      { id:'s9_3', stars:1, text:'Сезонни продукти — правилно обозначени и позиционирани' },
+    ]
+  },
+  {
+    id:'s10', name:'10. Градински мебели', color:'#6741D9',
+    specific:[
+      { id:'s10_1', stars:2, text:'Септ–Апр: инфотабели на всички неизложени градински мебели — проверка по наличност' },
+      { id:'s10_2', stars:2, text:'Апр–Септ: всички модели изложени по минимум 1 + инфотабели с цветове (мебели, люлки, чадъри, шатри, къмпинг, палатки) — проверка по наличност в системата' },
+      { id:'s10_3', stars:2, text:'Целогодишно: всички модели барбекю изложени по наличност в система' },
+    ]
+  },
+  {
+    id:'s11', name:'11. Крепежи, обков и врати', color:'#0C8599',
+    specific:[
+      { id:'s11_1', stars:2, text:'Нареждане по планограма или максимална близост при липса' },
+      { id:'s11_2', stars:1, text:'Врати на стойки — добро етикиране, подредени в добра линия' },
+      { id:'s11_3', stars:1, text:'Крепежи и обков — наредени по вид и размер, без смесване + КАМ' },
+    ]
+  },
+  {
+    id:'s12', name:'12. Входна зона и фасада', color:'#1864AB',
+    specific:[
+      { id:'s12_1', stars:1, text:'Актуална сезонна изложба в предверието (без предверие → Н/П)' },
+      { id:'s12_2', stars:1, text:'Добре подредени актуални продукти отвън' },
+      { id:'s12_3', stars:1, text:'Информационно табло — актуално, добре изглеждащи табели, запълнено' },
+      { id:'s12_4', stars:1, text:'Палетни точки — адекватни отстояния / височина, инфо табели, актуална стока' },
+    ]
+  },
+  {
+    id:'s13', name:'13. Вътрешен склад', color:'#495057',
+    specific:[
+      { id:'s13_1', stars:1, text:'Складът зониран по вид стока без смесване на сектори — с табели (зониран)' },
+      { id:'s13_2', stars:1, text:'Затисната стока зад по-едра на едно ниво — проверено и коригирано' },
+      { id:'s13_3', stars:1, text:'Всичко надписано (артикулни номера, наименования), надписите / етикетите видими' },
+      { id:'s13_4', stars:1, text:'Зона: стока за други обекти — обозначена и отделена' },
+      { id:'s13_5', stars:1, text:'Зона: неприета стока за прием — обозначена и отделена' },
+      { id:'s13_6', stars:1, text:'Зона: приета стока за подреждане в склад или ТЗ — обозначена' },
+      { id:'s13_7', stars:1, text:'Зона: стоки за връщане — обозначена и отделена' },
+      { id:'s13_8', stars:1, text:'Зона: стоки за брак или преоценка — обозначена и отделена' },
+      { id:'s13_9', stars:1, text:'Адресиране на локации — маркирани и четливи' },
+    ]
+  },
+  {
+    id:'s14', name:'14. Външен склад', color:'#343A40',
+    specific:[
+      { id:'s14_1', stars:1, text:'Складът зониран по вид стока без смесване на сектори — с табели (зониран)' },
+      { id:'s14_2', stars:1, text:'Затисната стока зад по-едра на едно ниво — проверено и коригирано' },
+      { id:'s14_3', stars:1, text:'Всичко надписано (артикулни номера, наименования), надписите / етикетите видими' },
+      { id:'s14_4', stars:1, text:'Зона: стока за други обекти — обозначена и отделена' },
+      { id:'s14_5', stars:1, text:'Зона: неприета стока за прием — обозначена и отделена' },
+      { id:'s14_6', stars:1, text:'Зона: приета стока за подреждане в склад или ТЗ — обозначена' },
+      { id:'s14_7', stars:1, text:'Зона: стоки за връщане — обозначена и отделена' },
+      { id:'s14_8', stars:1, text:'Зона: стоки за брак или преоценка — обозначена и отделена' },
+      { id:'s14_9', stars:1, text:'Адресиране на локации — маркирани и четливи' },
+    ]
+  },
+  {
+    id:'s15', name:'15. Плац', color:'#2B8A3E',
+    specific:[
+      { id:'s15_1', stars:1, text:'Постоянни: плочките на плац задължително покрити с найлони' },
+      { id:'s15_2', stars:1, text:'Постоянни: сухи смеси само на фабрично запечатани палети' },
+      { id:'s15_3', stars:1, text:'Постоянни: сухи смеси и гипскартон отворени — само под навес и покрити с найлон' },
+      { id:'s15_4', stars:1, text:'Временни (сезонни, ПВЦ и др.): задължително покрити с найлони' },
+    ]
+  },
+  {
+    id:'s16', name:'16. Касова зона и бюра', color:'#9C36B5',
+    specific:[
+      { id:'s16_1', stars:1, text:'Чистота и подреденост на касите и бюрата' },
+      { id:'s16_2', stars:1, text:'Бюро информация — подредено, забърсано без събрани рекламации и стока за транспорт' },
+      { id:'s16_3', stars:1, text:'Палетолинии — правилни отстояния 2×2 или 4×4 по стандарт + височина' },
+      { id:'s16_4', stars:1, text:'Задължителни палетни точки с консумативи при касите (мокри кърпи, тоалетна хартия, кухненска ролка и др.)' },
+      { id:'s16_5', stars:1, text:'Етикираност на изложената стока в касовата зона' },
+      { id:'s16_6', stars:1, text:'Без тикса, етикети и консумативи върху бюрата на консултанти' },
+      { id:'s16_7', stars:3, starsLabel:'★★★', text:'Храни, напитки или дрехи върху бюрата на консултанти' },
+      { id:'s16_8', stars:1, text:'Има ли музика в обекта от радиото на ТеМах?' },
+    ]
+  },
+  {
+    id:'s17', name:'17. Осветление', color:'#E67700',
+    specific:[
+      { id:'s17_1', stars:2, text:'Подредба по планограма или максимална близост при липса' },
+      { id:'s17_2', stars:1, text:'Всички осветителни тела подредени по вид, серия и цвят' },
+      { id:'s17_3', stars:1, text:'Мостри на ЛЕД плафони и ЛЕД полюлеи — окабелени и в работно състояние' },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  blocking: {},  // id -> 'DA'|'NE'
+  general: {},   // sectorId_criteriaKey -> '1'|'0.5'|'0'|'N/P'
+  specific: {},  // criteriaId -> '1'|'0.5'|'0'|'N/P' (or actual max value)
+  notes: {},     // id -> string
+  repeat: {},    // id -> 'Y'|'N'
+  deadline: {},  // id -> string
+};
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD CHECK UI
+// ═══════════════════════════════════════════════════════════════
+function buildCheckUI() {
+  const container = document.getElementById('checkContent');
+  let html = '';
+
+  // Blocking criteria banner
+  html += `<div class="blocking-banner">
+    <span class="icon">⛔</span>
+    <span class="text">БЛОКИРАЩИ КРИТЕРИИ — при дори едно НЕ бонусът пада автоматично</span>
+  </div>`;
+
+  BLOCKING.forEach((b, i) => {
+    html += `<div class="criteria-card blocking">
+      <div class="criteria-num">БЛОКИРАЩ ${i+1}</div>
+      <div class="criteria-label"><span class="block-tag">БЛОКИРАЩ</span>${b.text}</div>
+      <div class="score-row">
+        <button class="score-btn sda" data-id="${b.id}" data-val="DA" onclick="setScore('blocking','${b.id}','DA',this)">ДА ✓</button>
+        <button class="score-btn sne" data-id="${b.id}" data-val="NE" onclick="setScore('blocking','${b.id}','NE',this)">НЕ ✗</button>
+      </div>
+      <div class="note-row">
+        <button class="note-toggle" onclick="toggleNote('note_${b.id}')">+ Забележка</button>
+        <textarea class="note-input" id="note_${b.id}" style="display:none" placeholder="Забележка..." oninput="state.notes['${b.id}']=this.value"></textarea>
+      </div>
+    </div>`;
+  });
+
+  // Sectors
+  SECTORS.forEach(sector => {
+    html += `<div class="section-hdr" style="background:${sector.color}" id="shdr_${sector.id}">
+      ${sector.name}${sector.note ? `<span style="font-size:10px;opacity:.7"> ${sector.note}</span>` : ''}
+      <span class="sect-score" id="sscore_${sector.id}">—</span>
+    </div>`;
+
+    // General criteria sub-header
+    html += `<div class="criteria-card" style="background:#F8F9FA;border-top:2px solid ${sector.color}20">
+      <div style="font-size:11px;font-weight:600;color:var(--slate);letter-spacing:.04em;text-transform:uppercase">▸ Общи критерии</div>
+    </div>`;
+
+    GENERAL_CRITERIA.forEach((gc, gi) => {
+      const id = `${sector.id}_${gc.key}`;
+      html += `<div class="criteria-card" id="card_${id}">
+        <div class="criteria-num">${gi+1}.</div>
+        <div class="criteria-label">${gc.label}</div>
+        <div class="score-row">
+          <button class="score-btn s1"  onclick="setScore('general','${id}','1',this)">1</button>
+          <button class="score-btn s05" onclick="setScore('general','${id}','0.5',this)">0.5</button>
+          <button class="score-btn s0"  onclick="setScore('general','${id}','0',this)">0</button>
+          <button class="score-btn snp" onclick="setScore('general','${id}','NP',this)">Н/П</button>
+        </div>
+        <div class="note-row">
+          <button class="note-toggle" onclick="toggleNote('note_${id}')">+ Забележка</button>
+          <textarea class="note-input" id="note_${id}" style="display:none" placeholder="Забележка..." oninput="state.notes['${id}']=this.value"></textarea>
+        </div>
+      </div>`;
+    });
+
+    // Specific criteria sub-header
+    html += `<div class="criteria-card" style="background:#F8F9FA">
+      <div style="font-size:11px;font-weight:600;color:var(--slate);letter-spacing:.04em;text-transform:uppercase">▸ Специфични критерии</div>
+    </div>`;
+
+    sector.specific.forEach((sp, si) => {
+      const starsLabel = sp.starsLabel || (sp.stars >= 2 ? '★'.repeat(sp.stars) : '');
+      const starsClass = sp.stars >= 3 ? 'star3' : 'star';
+      const maxVal = sp.stars;
+      // Score options depend on max
+      let btns = '';
+      if (maxVal === 1) {
+        btns = `<button class="score-btn s1"  onclick="setScore('specific','${sp.id}','1',this)">1</button>
+                <button class="score-btn s05" onclick="setScore('specific','${sp.id}','0.5',this)">0.5</button>
+                <button class="score-btn s0"  onclick="setScore('specific','${sp.id}','0',this)">0</button>
+                <button class="score-btn snp" onclick="setScore('specific','${sp.id}','NP',this)">Н/П</button>`;
+      } else {
+        // For 2 or 3 star: show full values
+        const vals = maxVal === 2 ? ['2','1','0','NP'] : ['3','2','1','0','NP'];
+        btns = vals.map(v => {
+          const cls = v==='NP' ? 'snp' : v===String(maxVal) ? 's1' : v==='0' ? 's0' : 's05';
+          return `<button class="score-btn ${cls}" onclick="setScore('specific','${sp.id}','${v}',this)">${v==='NP'?'Н/П':v}</button>`;
+        }).join('');
+      }
+      html += `<div class="criteria-card" id="card_${sp.id}">
+        <div class="criteria-num">${si+1}. ${starsLabel ? `<span class="${starsClass}" style="font-size:12px">${starsLabel}</span>` : ''} (макс: ${maxVal})</div>
+        <div class="criteria-label">${starsLabel ? `<span class="${starsClass}">${starsLabel} </span>` : ''}${sp.text}</div>
+        <div class="score-row">${btns}</div>
+        <div class="note-row">
+          <button class="note-toggle" onclick="toggleNote('note_${sp.id}')">+ Забележка / Повторна грешка</button>
+          <div id="note_${sp.id}_extra" style="display:none">
+            <textarea class="note-input" id="note_${sp.id}" placeholder="Забележка / конкретен проблем..." oninput="state.notes['${sp.id}']=this.value" style="margin-bottom:6px"></textarea>
+            <div class="repeat-row">
+              <span class="repeat-label">Повторна грешка:</span>
+              <button class="repeat-btn" id="rep_${sp.id}_Y" onclick="setRepeat('${sp.id}','Y')">ДА</button>
+              <button class="repeat-btn" id="rep_${sp.id}_N" onclick="setRepeat('${sp.id}','N')">НЕ</button>
+              <input class="deadline-input" id="deadline_${sp.id}" type="text" placeholder="Срок / Отговорник" oninput="state.deadline['${sp.id}']=this.value">
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+
+    // Sector result row
+    html += `<div class="criteria-card result-row" id="result_${sector.id}">
+      <div class="result-row-inner">
+        <span class="result-label">Резултат — ${sector.name}</span>
+        <span class="result-score" id="rscore_${sector.id}">—</span>
+        <span class="result-badge" id="rbadge_${sector.id}">—</span>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+  updateScores();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCORING LOGIC
+// ═══════════════════════════════════════════════════════════════
+function setScore(type, id, val, btn) {
+  if (type === 'blocking') state.blocking[id] = val;
+  else if (type === 'general') state.general[id] = val;
+  else state.specific[id] = val;
+
+  // Update button states in same score-row
+  const row = btn.closest('.score-row');
+  row.querySelectorAll('.score-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  updateScores();
+}
+
+function setRepeat(id, val) {
+  state.repeat[id] = val;
+  document.getElementById(`rep_${id}_Y`).className = 'repeat-btn' + (val==='Y'?' active-y':'');
+  document.getElementById(`rep_${id}_N`).className = 'repeat-btn' + (val==='N'?' active-n':'');
+}
+
+function toggleNote(id) {
+  // Check if it's a specific criteria note (has _extra div)
+  const extra = document.getElementById(id + '_extra');
+  if (extra) {
+    extra.style.display = extra.style.display === 'none' ? 'block' : 'none';
+    return;
+  }
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function getSectorScore(sector) {
+  let score = 0, maxScore = 0;
+  let allAnswered = true;
+
+  // General criteria (6 × max 1 each)
+  GENERAL_CRITERIA.forEach(gc => {
+    const id = `${sector.id}_${gc.key}`;
+    const val = state.general[id];
+    if (!val) { allAnswered = false; return; }
+    if (val === 'NP') return;
+    maxScore += 1;
+    score += parseFloat(val) || 0;
+  });
+
+  // Specific criteria
+  sector.specific.forEach(sp => {
+    const val = state.specific[sp.id];
+    if (!val) { allAnswered = false; return; }
+    if (val === 'NP') return;
+    maxScore += sp.stars;
+    score += parseFloat(val) || 0;
+  });
+
+  return { score, maxScore, pct: maxScore > 0 ? score/maxScore : null };
+}
+
+function getOverallScore() {
+  let totalScore = 0, totalMax = 0;
+  const blockingFail = BLOCKING.some(b => state.blocking[b.id] === 'NE');
+
+  SECTORS.forEach(s => {
+    const { score, maxScore } = getSectorScore(s);
+    totalScore += score;
+    totalMax += maxScore;
+  });
+
+  const pct = totalMax > 0 ? totalScore/totalMax : null;
+  const bonusOk = pct !== null && pct >= 0.85 && !blockingFail;
+  return { totalScore, totalMax, pct, bonusOk, blockingFail };
+}
+
+function updateScores() {
+  const { totalScore, totalMax, pct, bonusOk } = getOverallScore();
+
+  // Topbar
+  document.getElementById('topScoreLabel').textContent = `${totalScore.toFixed(1)} / ${totalMax}`;
+  document.getElementById('topScorePct').textContent = pct !== null ? `${Math.round(pct*100)}%` : '– %';
+
+  // Progress
+  const allCriteria = SECTORS.reduce((a,s) => a + GENERAL_CRITERIA.length + s.specific.length, 0) + BLOCKING.length;
+  const answered = Object.keys(state.general).length + Object.keys(state.specific).length + Object.keys(state.blocking).length;
+
+  // Sector scores
+  SECTORS.forEach(s => {
+    const { score, maxScore, pct: sp } = getSectorScore(s);
+    const pctEl = document.getElementById('sscore_' + s.id);
+    const rscoreEl = document.getElementById('rscore_' + s.id);
+    const rbadgeEl = document.getElementById('rbadge_' + s.id);
+    if (!pctEl) return;
+
+    if (sp === null) {
+      pctEl.textContent = '—';
+      rscoreEl.textContent = '—';
+      rbadgeEl.textContent = '—';
+      rbadgeEl.className = 'result-badge';
+      return;
+    }
+    const pctStr = `${Math.round(sp*100)}%`;
+    pctEl.textContent = pctStr;
+    rscoreEl.textContent = `${score.toFixed(1)} / ${maxScore}  (${pctStr})`;
+
+    if (sp >= 0.85) {
+      rbadgeEl.textContent = '✓ ОК';
+      rbadgeEl.className = 'result-badge badge-ok';
+    } else if (sp >= 0.6) {
+      rbadgeEl.textContent = '⚠ ВНИМАНИЕ';
+      rbadgeEl.className = 'result-badge badge-warn';
+    } else {
+      rbadgeEl.textContent = '✗ СЛАБ';
+      rbadgeEl.className = 'result-badge badge-bad';
+    }
+  });
+
+  // Update summary if visible
+  if (document.getElementById('view-summary').classList.contains('active')) {
+    renderSummary();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════════════════════════
+function renderSummary() {
+  const { totalScore, totalMax, pct, bonusOk, blockingFail } = getOverallScore();
+  const blockFails = BLOCKING.filter(b => state.blocking[b.id] === 'NE');
+
+  let html = '';
+
+  // Bonus banner
+  if (pct !== null) {
+    if (bonusOk) {
+      html += `<div class="bonus-banner bonus-yes"><span class="bonus-icon">✅</span><span>БОНУС ОДОБРЕН — ${Math.round(pct*100)}%</span></div>`;
+    } else {
+      const reason = blockingFail ? 'блокиращ критерий' : `${Math.round(pct*100)}% < 85%`;
+      html += `<div class="bonus-banner bonus-no"><span class="bonus-icon">✗</span><span>БЕЗ БОНУС — ${reason}</span></div>`;
+    }
+  }
+
+  // KPI cards
+  html += `<div class="kpi-grid">
+    <div class="kpi-card ${pct!==null?(pct>=0.85?'ok':pct>=0.6?'warn':'bad'):''}">
+      <div class="kpi-label">Обща оценка</div>
+      <div class="kpi-value">${pct!==null?Math.round(pct*100)+'%':'—'}</div>
+      <div class="kpi-sub">${totalScore.toFixed(1)} / ${totalMax} точки</div>
+    </div>
+    <div class="kpi-card ${bonusOk?'ok':'bad'}">
+      <div class="kpi-label">Бонус</div>
+      <div class="kpi-value" style="font-size:18px">${bonusOk?'✅ ДА':'✗ НЕ'}</div>
+      <div class="kpi-sub">Праг: 85%</div>
+    </div>
+    <div class="kpi-card ${blockFails.length?'block':'ok'}">
+      <div class="kpi-label">Блокиращи</div>
+      <div class="kpi-value">${blockFails.length} НЕ</div>
+      <div class="kpi-sub">от ${BLOCKING.length} критерия</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Сектори ОК</div>
+      <div class="kpi-value">${SECTORS.filter(s=>{const{pct:sp}=getSectorScore(s);return sp!==null&&sp>=0.85}).length}</div>
+      <div class="kpi-sub">от ${SECTORS.length} сектора</div>
+    </div>
+  </div>`;
+
+  // Blocking fails
+  if (blockFails.length) {
+    html += `<div style="margin-bottom:14px">
+      <div class="trend-title" style="margin-bottom:8px">⛔ Блокиращи нарушения</div>`;
+    blockFails.forEach(b => {
+      html += `<div class="chronic-item"><span class="chronic-name">${b.text}</span><span class="chronic-count">НЕ</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Sector table
+  html += `<div class="sector-summary">
+    <div class="sector-sum-hdr">Резултати по сектори</div>`;
+
+  SECTORS.forEach(s => {
+    const { pct: sp } = getSectorScore(s);
+    const cls = sp===null?'':sp>=0.85?'pct-ok':sp>=0.6?'pct-warn':'pct-bad';
+    const barCls = sp===null?'':sp>=0.85?'bar-ok':sp>=0.6?'bar-warn':'bar-bad';
+    const pctVal = sp !== null ? Math.round(sp*100) : null;
+    html += `<div class="sector-sum-row">
+      <span class="name">${s.name}</span>
+      <div class="bar-wrap"><div class="bar ${barCls}" style="width:${pctVal||0}%"></div></div>
+      <span class="pct ${cls}">${pctVal!==null?pctVal+'%':'—'}</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Problem sectors with notes
+  const problemSectors = SECTORS.filter(s => {
+    const { pct: sp } = getSectorScore(s);
+    return sp !== null && sp < 0.85;
+  });
+  if (problemSectors.length) {
+    html += `<div style="margin-top:4px"><div class="trend-title" style="margin-bottom:8px">⚠ Сектори под прага</div>`;
+    problemSectors.forEach(s => {
+      const { pct: sp } = getSectorScore(s);
+      html += `<div class="chronic-item" style="border-left-color:${sp<0.6?'var(--rose)':'var(--amber)'}">
+        <span class="chronic-name">${s.name}</span>
+        <span class="chronic-count" style="color:${sp<0.6?'var(--rose)':'var(--amber)'}">${Math.round(sp*100)}%</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  document.getElementById('summaryContent').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SAVE / LOAD HISTORY
+// ═══════════════════════════════════════════════════════════════
+function saveCheck() {
+  const shop = document.getElementById('shopName').value.trim();
+  const date = document.getElementById('checkDate').value;
+  const manager = document.getElementById('managerName').value.trim();
+
+  if (!shop || !date) {
+    alert('Моля, попълнете магазин и дата преди да запазите.');
+    return;
+  }
+
+  const { totalScore, totalMax, pct, bonusOk, blockingFail } = getOverallScore();
+  const sectorResults = {};
+  SECTORS.forEach(s => { sectorResults[s.id] = getSectorScore(s); });
+
+  const entry = {
+    id: Date.now(),
+    shop, date, manager,
+    totalScore, totalMax, pct, bonusOk, blockingFail,
+    sectorResults,
+    state: JSON.parse(JSON.stringify(state)),
+    ts: new Date().toISOString(),
+  };
+
+  let history = loadHistory();
+  history.unshift(entry);
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('checklist_history', JSON.stringify(history));
+
+  alert(`✅ Проверката е запазена!\n${shop} — ${date}\nОбща оценка: ${pct!==null?Math.round(pct*100)+'%':'—'}\n${bonusOk?'✅ Бонус одобрен':'✗ Без бонус'}`);
+  renderHistory();
+  showPrevInfo();
+}
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem('checklist_history') || '[]'); } catch { return []; }
+}
+
+function clearCheck() {
+  if (!confirm('Изчистване на всички попълнени данни?')) return;
+  state = { blocking:{}, general:{}, specific:{}, notes:{}, repeat:{}, deadline:{} };
+  buildCheckUI();
+  document.getElementById('shopName').value = '';
+  document.getElementById('checkDate').value = '';
+  document.getElementById('managerName').value = '';
+  updateScores();
+}
+
+function showPrevInfo() {
+  const h = loadHistory();
+  if (h.length < 2) return;
+  const prev = h[1];
+  document.getElementById('prevInfoRow').style.display = 'block';
+  document.getElementById('prevDateLabel').textContent = prev.date;
+  document.getElementById('prevPctLabel').textContent = prev.pct!==null?Math.round(prev.pct*100)+'% (предишна)':'—';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HISTORY RENDER — with shop filter
+// ═══════════════════════════════════════════════════════════════
+let activeShopFilter = 'ALL';
+
+function renderHistory() {
+  const history = loadHistory();
+  const container = document.getElementById('historyContent');
+
+  if (!history.length) {
+    container.innerHTML = `<p class="empty-history">Все още няма запазени проверки.<br>Попълнете и запазете първата проверка.</p>`;
+    return;
+  }
+
+  let html = '';
+
+  // Apply shop filter
+  const filtered = activeShopFilter === 'ALL'
+    ? history
+    : history.filter(e => e.shop === activeShopFilter);
+
+  if (!filtered.length) {
+    container.innerHTML = `<div style="text-align:center;padding:30px 20px;color:var(--slate);font-size:13px">Няма проверки за <strong>${activeShopFilter}</strong>.</div>`;
+    buildShopFilter(history);
+    return;
+  }
+
+  // Trend chart (last 8 checks for selected shop)
+  const recent = filtered.slice(0, 8).reverse();
+  if (recent.length >= 2) {
+    html += `<div class="history-card">
+      <div class="history-card-hdr"><span>Тенденция — последни ${recent.length} проверки</span></div>
+      <div class="history-card-body">
+        <div class="trend-chart">`;
+    recent.forEach(e => {
+      const pv = e.pct !== null ? Math.round(e.pct*100) : 0;
+      const barH = Math.max(4, pv * 0.55);
+      const barColor = pv>=85?'var(--emerald)':pv>=60?'var(--amber)':'var(--rose)';
+      html += `<div class="trend-bar-wrap">
+        <div class="trend-bar-pct" style="color:${barColor}">${pv}%</div>
+        <div class="trend-bar" style="height:${barH}px;background:${barColor};width:100%"></div>
+        <div class="trend-bar-label">${e.date.slice(5)}</div>
+      </div>`;
+    });
+    html += `</div></div></div>`;
+  }
+
+  // Chronic problems — based on filtered shop
+  const failCounts = {};
+  filtered.slice(0, 12).forEach(entry => {
+    if (!entry.state) return;
+    SECTORS.forEach(s => {
+      GENERAL_CRITERIA.forEach(gc => {
+        const id = `${s.id}_${gc.key}`;
+        const v = entry.state.general[id];
+        if (v === '0' || v === '0.5') {
+          failCounts[`${s.name}: ${gc.label.slice(0,40)}…`] = (failCounts[`${s.name}: ${gc.label.slice(0,40)}…`]||0) + 1;
+        }
+      });
+      s.specific.forEach(sp => {
+        const v = entry.state.specific[sp.id];
+        if (v === '0' || (parseFloat(v)||0) < sp.stars) {
+          const key = `${s.name}: ${sp.text.slice(0,45)}…`;
+          failCounts[key] = (failCounts[key]||0) + 1;
+        }
+      });
+    });
+  });
+  const chronic = Object.entries(failCounts).filter(([,c])=>c>=2).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  if (chronic.length) {
+    html += `<div class="history-card">
+      <div class="history-card-hdr"><span>🔁 Хронични грешки (2+ проверки)</span></div>
+      <div class="history-card-body">`;
+    chronic.forEach(([name, count]) => {
+      html += `<div class="chronic-item"><span class="chronic-name">${name}</span><span class="chronic-count">${count}× грешка</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Individual checks
+  history.forEach((entry, idx) => {
+    const pv = entry.pct!==null?Math.round(entry.pct*100):null;
+    const pcolor = pv!==null?(pv>=85?'var(--emerald)':pv>=60?'var(--amber)':'var(--rose)'):'var(--slate)';
+    html += `<div class="history-card">
+      <div class="history-card-hdr">
+        <div>
+          <div class="hdate">${entry.shop}</div>
+          <div class="hshop">${entry.date}${entry.manager?' · '+entry.manager:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:${pcolor}">${pv!==null?pv+'%':'—'}</div>
+          <div style="font-size:11px;color:${entry.bonusOk?'#69DB7C':'#FF8787'}">${entry.bonusOk?'✅ Бонус':'✗ Без бонус'}</div>
+        </div>
+      </div>
+      <div class="history-card-body">
+        <div class="history-sectors">`;
+    SECTORS.forEach(s => {
+      const sr = entry.sectorResults[s.id];
+      if (!sr || sr.pct === null) return;
+      const sp = Math.round(sr.pct*100);
+      const sc = sp>=85?'pct-ok':sp>=60?'pct-warn':'pct-bad';
+      html += `<div class="hs-item"><span class="hs-name">${s.name.slice(0,20)}</span><span class="hs-pct ${sc}">${sp}%</span></div>`;
+    });
+    html += `</div>
+        ${idx < filtered.length-1 ? compareToPrev(entry, filtered[idx+1]) : ''}
+      </div>
+    </div>`;
+  });
+
+  // Export button
+  html += `<div style="text-align:center;padding:10px 0 20px">
+    <button onclick="exportHistory()" style="padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">⬇ Изтегли историята (JSON)</button>
+  </div>`;
+
+  container.innerHTML = html;
+  buildShopFilter(history);
+}
+
+function buildShopFilter(history) {
+  if (!history.length) { document.getElementById('histFilterBar').style.display='none'; return; }
+  const shops = ['ALL', ...new Set(history.map(e=>e.shop).filter(Boolean))];
+  if (shops.length <= 2) { document.getElementById('histFilterBar').style.display='none'; return; }
+  document.getElementById('histFilterBar').style.display='block';
+  document.getElementById('shopFilterBtns').innerHTML = shops.map(s => {
+    const active = s === activeShopFilter;
+    const bg = active ? '#2F54EB' : '#F1F5F9';
+    const col = active ? '#fff' : '#475569';
+    return `<button onclick="setShopFilter('${s}')" style="padding:5px 12px;border:none;border-radius:20px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;background:${bg};color:${col};transition:all .15s">${s==='ALL'?'Всички магазини':s}</button>`;
+  }).join('');
+}
+
+function setShopFilter(shop) {
+  activeShopFilter = shop;
+  renderHistory();
+}
+
+function compareToPrev(curr, prev) {
+  if (!curr.pct || !prev.pct) return '';
+  const diff = Math.round((curr.pct - prev.pct)*100);
+  const color = diff > 0 ? 'var(--emerald)' : diff < 0 ? 'var(--rose)' : 'var(--slate)';
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '→';
+  return `<div style="font-size:11px;color:${color};margin-top:6px;font-family:'IBM Plex Mono',monospace">
+    ${arrow} ${diff > 0 ? '+' : ''}${diff}% спрямо предишна проверка
+  </div>`;
+}
+
+function exportHistory() {
+  const history = loadHistory();
+  const blob = new Blob([JSON.stringify(history, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `checklist_history_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const tabs = {check:0, summary:1, history:2};
+  document.querySelectorAll('.nav-tab')[tabs[name]].classList.add('active');
+
+  if (name === 'summary') renderSummary();
+  if (name === 'history') renderHistory();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('checkDate').value = new Date().toISOString().slice(0,10);
+buildCheckUI();
+showPrevInfo();
+renderHistory();
+</script>
+</body>
+</html>
