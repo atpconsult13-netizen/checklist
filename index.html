@@ -1035,13 +1035,32 @@ function saveCheck() {
   if (history.length > 50) history = history.slice(0, 50);
   localStorage.setItem('checklist_history', JSON.stringify(history));
 
-  // Send to Google Sheets
+  // Send to Google Sheets — adapt field names to match Apps Script
   const sheetsUrl = 'https://script.google.com/macros/s/AKfycby0lxrxyFgfVZ-zFG0CGx2jDng1VaDAfRzWtO6k1Vtejd9pVK7BAuEAIA6Q6KnT-xJBpQ/exec';
+  // Convert sectorResults {pct} -> sectorData {combinedPct} for Apps Script
+  const sectorData = {};
+  if (entry.sectorResults) {
+    Object.keys(entry.sectorResults).forEach(sid => {
+      const sr = entry.sectorResults[sid];
+      sectorData[sid] = { combinedPct: sr.pct, score: sr.score, maxScore: sr.maxScore };
+    });
+  }
+  const sheetsPayload = {
+    shop:       entry.shop,
+    date:       entry.date,
+    manager:    entry.manager,
+    savedAt:    entry.ts,
+    avgPct:     entry.pct,
+    bonusOk:    entry.bonusOk,
+    blockFail:  entry.blockingFail,
+    sectorData: sectorData,
+    state:      entry.state,
+  };
   fetch(sheetsUrl, {
     method: 'POST',
     mode: 'no-cors',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(entry)
+    body: JSON.stringify(sheetsPayload)
   }).catch(err => console.log('Sheets error:', err));
 
   alert(`✅ Проверката е запазена!\n${shop} — ${date}\nОбща оценка: ${pct!==null?Math.round(pct*100)+'%':'—'}\n${bonusOk?'✅ Бонус одобрен':'✗ Без бонус'}`);
