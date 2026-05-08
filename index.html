@@ -1036,7 +1036,7 @@ function saveCheck() {
   localStorage.setItem('checklist_history', JSON.stringify(history));
 
   // Send to Google Sheets — adapt field names to match Apps Script
-  const sheetsUrl = 'https://script.google.com/macros/s/AKfycbxhMlmw6v64CGt5YV6UxxKgADlZ0Z9absOJOVB6Sn79Ht418-2hkRCQuVFRBAIivcunIg/exec';
+  const sheetsUrl = 'https://script.google.com/macros/s/AKfycbzRShMGQkdpQSQmd7GInmJ3ajbwx5qqBC1zgH7nnfjBEpzMURTz6_7JIz4qjMH_6y_z8g/exec';
   // Convert sectorResults {pct} -> sectorData {combinedPct} for Apps Script
   const sectorData = {};
   if (entry.sectorResults) {
