@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Табло — ТеМАХ Директор</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+:root {
+  --navy:#0D1B2A; --indigo:#2F54EB; --indigo-l:#EDF2FF;
+  --green:#0A7C59; --green-l:#E6F9F1;
+  --red:#C0392B; --red-l:#FDE8E8;
+  --amber:#B45309; --amber-l:#FEF3C7;
+  --slate:#64748B; --slate-l:#E2E8F0; --slate-xl:#F8FAFC;
+  --white:#fff; --text:#0F172A;
+  --r:10px; --sh:0 1px 8px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#EEF2F7;color:var(--text);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--navy);position:sticky;top:0;z-index:100;}
+.topbar-stripe{height:3px;background:linear-gradient(90deg,#2F54EB,#0A7C59);}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-logo{height:32px;width:32px;border-radius:6px;object-fit:cover;}
+.topbar-title{font-size:15px;font-weight:700;color:#fff;}
+.topbar-sub{font-size:10px;color:#64748B;margin-top:-2px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.refresh-btn{padding:7px 14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;}
+.refresh-btn:hover{background:rgba(255,255,255,.18);}
+.last-update{font-size:10px;color:#64748B;}
+
+/* LAYOUT */
+.page{padding:16px 20px 40px;}
+.section-title{font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px;}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px;}
+@media(min-width:600px){.kpi-row{grid-template-columns:repeat(4,1fr);}}
+.kpi{background:var(--white);border-radius:var(--r);padding:14px;box-shadow:var(--sh);border-top:3px solid var(--indigo);}
+.kpi.ok{border-top-color:var(--green);}
+.kpi.warn{border-top-color:#D97706;}
+.kpi.bad{border-top-color:var(--red);}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;}
+.kpi-sub{font-size:11px;color:var(--slate);margin-top:2px;}
+
+/* SHOPS GRID */
+.shops-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+@media(min-width:600px){.shops-grid{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:900px){.shops-grid{grid-template-columns:repeat(3,1fr);}}
+
+.shop-card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.shop-card-hdr{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.shop-name{font-size:14px;font-weight:700;color:#fff;}
+.shop-date{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+.shop-pct{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#fff;}
+.shop-bonus{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);margin-top:1px;text-align:right;}
+.shop-body{padding:12px 14px;}
+.shop-sectors{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;}
+.sec-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--slate-l);}
+.sec-row:last-child{border:none;}
+.sec-name{font-size:11px;color:var(--slate);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sec-pct{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0;}
+.c-ok{color:var(--green);} .c-warn{color:#D97706;} .c-bad{color:var(--red);} .c-pend{color:var(--slate);}
+.bar-wrap{width:100%;height:4px;background:var(--slate-l);border-radius:2px;margin-top:8px;}
+.bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+
+/* TREND SECTION */
+.trend-card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:10px;}
+.trend-hdr{background:var(--navy);padding:10px 14px;font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em;}
+.trend-body{padding:14px;}
+.trend-bars{display:flex;gap:6px;align-items:flex-end;height:80px;}
+.tb-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tb-pct{font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;}
+.tb-bar{width:100%;border-radius:3px 3px 0 0;min-height:3px;}
+.tb-label{font-size:9px;color:var(--slate);text-align:center;line-height:1.2;}
+
+/* RANKING TABLE */
+.rank-card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:10px;}
+.rank-hdr{background:var(--navy);padding:10px 14px;display:grid;grid-template-columns:30px 1fr 60px 70px 60px;gap:8px;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.04em;}
+.rank-row{display:grid;grid-template-columns:30px 1fr 60px 70px 60px;gap:8px;padding:10px 14px;border-top:1px solid var(--slate-l);align-items:center;}
+.rank-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--slate);}
+.rank-num.gold{color:#CA8A04;} .rank-num.silver{color:#9CA3AF;} .rank-num.bronze{color:#B45309;}
+.rank-shop{font-size:13px;font-weight:600;}
+.rank-pct{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;text-align:right;}
+.rank-bonus{font-size:11px;font-weight:700;text-align:center;}
+.rank-date{font-size:10px;color:var(--slate);text-align:right;}
+
+/* CHRONIC */
+.chronic-row{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:6px;margin-bottom:5px;background:var(--red-l);}
+.chr-name{flex:1;font-size:12px;line-height:1.4;}
+.chr-cnt{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--red);white-space:nowrap;}
+
+/* LOADING / ERROR */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid rgba(47,84,235,.2);border-top-color:var(--indigo);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:13px;color:var(--slate);}
+.error-box{background:var(--red-l);border:1px solid #FECACA;border-radius:var(--r);padding:14px 16px;margin:20px 0;font-size:13px;color:var(--red);}
+
+.empty-msg{text-align:center;padding:40px 20px;color:var(--slate);font-size:13px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-stripe"></div>
+  <div class="topbar-inner">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title">Табло — Директор</div>
+        <div class="topbar-sub">ТеМАХ · Всички магазини</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="last-update" id="lastUpdate">—</div>
+      <button class="refresh-btn" onclick="loadData()">↺ Обнови</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="pageContent">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Зареждане на данни от Google Sheets…</div>
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxhMlmw6v64CGt5YV6UxxKgADlZ0Z9absOJOVB6Sn79Ht418-2hkRCQuVFRBAIivcunIg/exec';
+
+const SECTOR_KEYS = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16','s17'];
+const SECTOR_NAMES = {
+  s1:'Плочки', s2:'Строителство', s3:'Баня', s4:'Текстил',
+  s5:'Подови настилки', s6:'Дом. потреби', s7:'Бои', s8:'Ел. машини',
+  s9:'Градина', s10:'Градин. мебели', s11:'Крепежи', s12:'Входна зона',
+  s13:'Вът. склад', s14:'Външ. склад', s15:'Плац', s16:'Касова зона', s17:'Осветление'
+};
+
+let allData = [];
+
+function loadData() {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Зареждане на данни…</div>
+    </div>`;
+
+  // Remove old script tag if exists
+  const old = document.getElementById('jsonp-script');
+  if (old) old.remove();
+
+  // Set global callback
+  window._dashboardCallback = function(json) {
+    if (json.status === 'ok' && json.data) {
+      allData = json.data;
+      document.getElementById('lastUpdate').textContent = 'Обновено: ' + new Date().toLocaleTimeString('bg-BG');
+      renderDashboard(allData);
+    } else {
+      showError('Грешка при зареждане: ' + (json.message || 'неизвестна грешка'));
+    }
+  };
+
+  // JSONP request — works without CORS
+  const script = document.createElement('script');
+  script.id = 'jsonp-script';
+  script.src = SHEETS_URL + '?action=getAll&callback=_dashboardCallback';
+  script.onerror = () => showError('Не може да се свърже с Google Sheets. Проверете интернет връзката и Apps Script деплоя.');
+  document.head.appendChild(script);
+}
+
+function showError(msg) {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="error-box">⚠ ${msg}</div>
+    <div style="text-align:center;padding:10px">
+      <button onclick="loadData()" style="padding:9px 18px;background:var(--indigo);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">Опитай отново</button>
+    </div>`;
+}
+
+function pctColor(p) {
+  if (p === null) return 'c-pend';
+  return p >= 85 ? 'c-ok' : p >= 60 ? 'c-warn' : 'c-bad';
+}
+function barColor(p) {
+  if (p === null) return '#CBD5E1';
+  return p >= 85 ? '#0A7C59' : p >= 60 ? '#D97706' : '#C0392B';
+}
+function shopBg(p, bonus) {
+  if (bonus) return '#0A7C59';
+  if (p !== null && p < 60) return '#C0392B';
+  return '#1E3A5F';
+}
+
+function renderDashboard(data) {
+  if (!data.length) {
+    document.getElementById('pageContent').innerHTML = '<p class="empty-msg">Няма данни. Направете поне една проверка от приложението.</p>';
+    return;
+  }
+
+  // Latest check per shop
+  const shopMap = {};
+  data.forEach(e => {
+    if (!shopMap[e.shop] || e.date > shopMap[e.shop].date) shopMap[e.shop] = e;
+  });
+  const latestPerShop = Object.values(shopMap);
+
+  // KPIs
+  const totalShops = latestPerShop.length;
+  const okShops = latestPerShop.filter(s => s.bonusOk).length;
+  const avgPct = latestPerShop.length
+    ? Math.round(latestPerShop.reduce((a,s) => a + (s.overallPct||0), 0) / latestPerShop.length)
+    : null;
+  const blockShops = latestPerShop.filter(s => s.blockFail).length;
+
+  // Ranking (sorted by pct desc)
+  const ranked = [...latestPerShop].sort((a,b) => (b.overallPct||0) - (a.overallPct||0));
+
+  // Trend (last 10 entries across all shops by date)
+  const trend = [...data].sort((a,b) => a.savedAt > b.savedAt ? 1 : -1).slice(-10);
+
+  // Chronic issues
+  const failMap = {};
+  data.forEach(entry => {
+    if (!entry.sectors) return;
+    Object.keys(entry.sectors).forEach(sid => {
+      const p = entry.sectors[sid];
+      if (p !== null && p < 85) {
+        const k = (SECTOR_NAMES[sid]||sid) + ' (' + entry.shop + ')';
+        failMap[k] = (failMap[k]||0) + 1;
+      }
+    });
+  });
+  const chronic = Object.entries(failMap).filter(([,c])=>c>=2).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  let h = '';
+
+  // KPI row
+  h += `<div class="section-title">Обобщение</div>
+  <div class="kpi-row">
+    <div class="kpi ${okShops===totalShops?'ok':okShops>totalShops/2?'warn':'bad'}">
+      <div class="kpi-lbl">Бонус одобрен</div>
+      <div class="kpi-val">${okShops} / ${totalShops}</div>
+      <div class="kpi-sub">магазина</div>
+    </div>
+    <div class="kpi ${avgPct>=85?'ok':avgPct>=60?'warn':'bad'}">
+      <div class="kpi-lbl">Средна оценка</div>
+      <div class="kpi-val">${avgPct!==null?avgPct+'%':'—'}</div>
+      <div class="kpi-sub">всички магазини</div>
+    </div>
+    <div class="kpi ${blockShops?'bad':'ok'}">
+      <div class="kpi-lbl">Блокиращи</div>
+      <div class="kpi-val">${blockShops}</div>
+      <div class="kpi-sub">магазина с проблем</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Проверки</div>
+      <div class="kpi-val">${data.length}</div>
+      <div class="kpi-sub">общо записани</div>
+    </div>
+  </div>`;
+
+  // Ranking table
+  h += `<div class="section-title">Класация по магазини</div>
+  <div class="rank-card">
+    <div class="rank-hdr"><div>#</div><div>Магазин</div><div>Оценка</div><div>Бонус</div><div>Дата</div></div>`;
+  ranked.forEach((s,i) => {
+    const p = s.overallPct;
+    const numCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+    h += `<div class="rank-row">
+      <div class="rank-num ${numCls}">${medal}</div>
+      <div class="rank-shop">${s.shop}</div>
+      <div class="rank-pct ${pctColor(p)}">${p!==null?p+'%':'—'}</div>
+      <div class="rank-bonus" style="color:${s.bonusOk?'var(--green)':'var(--red)'}">${s.bonusOk?'✅ ДА':'✗ НЕ'}</div>
+      <div class="rank-date">${s.date||'—'}</div>
+    </div>`;
+  });
+  h += `</div>`;
+
+  // Trend chart
+  if (trend.length >= 2) {
+    h += `<div class="section-title">Тенденция — последни проверки</div>
+    <div class="trend-card">
+      <div class="trend-hdr">Обща оценка по дата</div>
+      <div class="trend-body">
+        <div class="trend-bars">`;
+    trend.forEach(e => {
+      const pv = e.overallPct || 0;
+      const barH = Math.max(4, pv * 0.72);
+      const col = barColor(pv);
+      h += `<div class="tb-wrap">
+        <div class="tb-pct" style="color:${col}">${pv>0?pv+'%':'—'}</div>
+        <div class="tb-bar" style="height:${barH}px;background:${col}"></div>
+        <div class="tb-label">${(e.shop||'').slice(0,8)}<br>${(e.date||'').slice(5)}</div>
+      </div>`;
+    });
+    h += `</div></div></div>`;
+  }
+
+  // Shop cards
+  h += `<div class="section-title">Детайли по магазин</div>
+  <div class="shops-grid">`;
+  ranked.forEach(s => {
+    const p = s.overallPct;
+    const bg = shopBg(p, s.bonusOk);
+    h += `<div class="shop-card">
+      <div class="shop-card-hdr" style="background:${bg}">
+        <div>
+          <div class="shop-name">${s.shop}</div>
+          <div class="shop-date">${s.date||''}${s.manager?' · '+s.manager:''}</div>
+        </div>
+        <div>
+          <div class="shop-pct">${p!==null?p+'%':'—'}</div>
+          <div class="shop-bonus">${s.bonusOk?'✅ Бонус':'✗ Без бонус'}</div>
+        </div>
+      </div>
+      <div class="shop-body">
+        <div class="shop-sectors">`;
+    SECTOR_KEYS.forEach(sid => {
+      const sp = s.sectors && s.sectors[sid] !== undefined ? s.sectors[sid] : null;
+      const cls = pctColor(sp);
+      h += `<div class="sec-row">
+        <span class="sec-name">${SECTOR_NAMES[sid]}</span>
+        <span class="sec-pct ${cls}">${sp!==null?sp+'%':'—'}</span>
+      </div>`;
+    });
+    h += `</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${p||0}%;background:${barColor(p)}"></div></div>
+      </div>
+    </div>`;
+  });
+  h += `</div>`;
+
+  // Chronic issues
+  if (chronic.length) {
+    h += `<div class="section-title">🔁 Хронични проблеми (≥2 проверки под 85%)</div>`;
+    chronic.forEach(([name,cnt]) => {
+      h += `<div class="chronic-row"><span class="chr-name">${name}</span><span class="chr-cnt">${cnt}× под прага</span></div>`;
+    });
+  }
+
+  // Full history
+  h += `<div class="section-title">Пълна история</div>
+  <div class="rank-card">
+    <div class="rank-hdr"><div>#</div><div>Магазин</div><div>Оценка</div><div>Бонус</div><div>Дата</div></div>`;
+  [...data].sort((a,b)=>b.savedAt>a.savedAt?1:-1).forEach((e,i) => {
+    const p = e.overallPct;
+    h += `<div class="rank-row">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-shop" style="font-size:12px">${e.shop}<span style="color:var(--slate);font-weight:400"> · ${e.manager||''}</span></div>
+      <div class="rank-pct ${pctColor(p)}">${p!==null?p+'%':'—'}</div>
+      <div class="rank-bonus" style="color:${e.bonusOk?'var(--green)':'var(--red)'}">${e.bonusOk?'✅':'✗'}</div>
+      <div class="rank-date">${e.date||'—'}</div>
+    </div>`;
+  });
+  h += `</div>`;
+
+  document.getElementById('pageContent').innerHTML = h;
+}
+
+// Auto-load on open
+loadData();
+// Auto-refresh every 5 minutes
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
