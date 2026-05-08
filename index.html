@@ -404,10 +404,74 @@ const _ml=document.createElement('link');_ml.rel='manifest';_ml.href=URL.createO
     .save-bar { padding: 14px 24px; }
     .summary-view, .history-view { padding: 16px 24px; }
   }
+
+  /* ── PRINT / PDF STYLES ── */
+  @media print {
+    body { background: #fff !important; font-size: 11px; }
+    .topbar, .save-bar, .info-box .info-cell input,
+    .note-toggle, .note-extra, .score-btns,
+    #setupBanner, #prevChip, .prog-wrap, .prog-text { display: none !important; }
+
+    .view { display: block !important; }
+    #view-summary { display: block !important; }
+    #view-check, #view-history { display: none !important; }
+
+    .topbar-tabs { display: none !important; }
+    .save-bar { display: none !important; }
+
+    .print-header { display: block !important; }
+    .print-footer { display: block !important; }
+
+    .sum-wrap { padding: 0 !important; }
+    .bonus-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .kpi { -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #e2e8f0 !important; }
+    .s-sum-row { padding: 5px 10px !important; }
+    .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+    .card-hdr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { margin: 15mm; size: A4 portrait; }
+  }
+  .print-header { display: none; }
+  .print-footer { display: none; }
+
+  /* PDF BUTTON */
+  .pdf-btn-wrap {
+    position: fixed; bottom: 80px; right: 16px; z-index: 150;
+  }
+  .pdf-btn {
+    background: var(--navy); color: #fff; border: none; border-radius: 50px;
+    padding: 10px 16px; font-size: 13px; font-weight: 700; font-family: inherit;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    display: flex; align-items: center; gap: 6px; transition: all .15s;
+  }
+  .pdf-btn:hover { background: var(--indigo); transform: translateY(-2px); }
 </style>
 </head>
 <body>
 
+
+<!-- PDF PRINT HEADER (hidden on screen, shows when printing) -->
+<div class="print-header" id="printHeader" style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #0D1B2A;">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:18px;font-weight:800;color:#0D1B2A;">ТеМАХ — Контролна карта</div>
+      <div style="font-size:12px;color:#64748B;margin-top:2px;" id="printMeta">Отчет за проверка</div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:#64748B;">
+      <div id="printDate"></div>
+      <div id="printBonus" style="font-weight:700;font-size:14px;margin-top:2px;"></div>
+    </div>
+  </div>
+</div>
+<div class="print-footer" id="printFooter" style="margin-top:20px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;color:#94A3B8;text-align:center;">
+  ТеМАХ · Контролна карта · Генериран автоматично
+</div>
+
+<!-- PDF BUTTON (visible on screen) -->
+<div class="pdf-btn-wrap">
+  <button class="pdf-btn" onclick="generatePDF()" title="Генерирай PDF отчет">
+    📄 PDF отчет
+  </button>
+</div>
 <div class="topbar">
   <div class="topbar-accent"></div>
   <div class="topbar-inner">
@@ -1292,6 +1356,33 @@ document.getElementById('checkDate').value = new Date().toISOString().slice(0,10
 buildCheckUI();
 showPrevInfo();
 renderHistory();
+
+// ── PDF / PRINT ──────────────────────────────────────────────────
+function generatePDF() {
+  // Fill print header with current data
+  const shop    = document.getElementById('shopName').value || '—';
+  const date    = document.getElementById('checkDate').value || '—';
+  const manager = document.getElementById('managerName').value || '—';
+  const { avgPct, bonusOk } = getOverallScore ? getOverallScore() : { avgPct: null, bonusOk: false };
+
+  document.getElementById('printMeta').textContent =
+    'Магазин: ' + shop + '  ·  Дата: ' + date + '  ·  Управител: ' + manager;
+  document.getElementById('printDate').textContent =
+    'Отпечатано: ' + new Date().toLocaleDateString('bg-BG');
+  document.getElementById('printBonus').textContent =
+    avgPct !== null ? (bonusOk ? '✅ БОНУС ОДОБРЕН — ' : '✗ БЕЗ БОНУС — ') + Math.round(avgPct*100) + '%' : '';
+  document.getElementById('printBonus').style.color = bonusOk ? '#0A7C59' : '#C0392B';
+
+  // Switch to summary view for printing
+  const prevTab = activeTab || 'check';
+  // Show summary content
+  renderSummary && renderSummary();
+
+  // Small delay then print
+  setTimeout(() => {
+    window.print();
+  }, 300);
+}
 </script>
 </body>
 </html>
