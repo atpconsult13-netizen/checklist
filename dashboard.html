@@ -149,25 +149,35 @@ function loadData() {
     </div>`;
 
   // Remove old script tag if exists
-  const old = document.getElementById('jsonp-script');
-  if (old) old.remove();
+  const oldScript = document.getElementById('jsonp-script');
+  if (oldScript) oldScript.remove();
 
-  // Set global callback
-  window._dashboardCallback = function(json) {
-    if (json.status === 'ok' && json.data) {
+  // Unique callback name to avoid conflicts
+  const cbName = '_cb_' + Date.now();
+
+  window[cbName] = function(json) {
+    // Cleanup
+    delete window[cbName];
+    const s = document.getElementById('jsonp-script');
+    if (s) s.remove();
+
+    if (json && json.status === 'ok' && json.data) {
       allData = json.data;
       document.getElementById('lastUpdate').textContent = 'Обновено: ' + new Date().toLocaleTimeString('bg-BG');
       renderDashboard(allData);
     } else {
-      showError('Грешка при зареждане: ' + (json.message || 'неизвестна грешка'));
+      showError('Грешка: ' + (json && json.message ? json.message : 'Няма данни'));
     }
   };
 
-  // JSONP request — works without CORS
   const script = document.createElement('script');
   script.id = 'jsonp-script';
-  script.src = SHEETS_URL + '?action=getAll&callback=_dashboardCallback';
-  script.onerror = () => showError('Не може да се свърже с Google Sheets. Проверете интернет връзката и Apps Script деплоя.');
+  script.src = SHEETS_URL + '?action=getAll&callback=' + cbName;
+  script.onerror = function() {
+    delete window[cbName];
+    // Fallback: try without callback (direct JSON via no-cors trick)
+    showError('⚠ Apps Script не отговаря. Проверете: 1) Деплоят е активен 2) Достъп е "Всеки" 3) URL-ът е правилен.');
+  };
   document.head.appendChild(script);
 }
 
