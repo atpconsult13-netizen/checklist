@@ -1045,16 +1045,41 @@ function saveCheck() {
       sectorData[sid] = { combinedPct: sr.pct, score: sr.score, maxScore: sr.maxScore };
     });
   }
+  // Build notes + repeat + deadline as flat arrays for Sheets
+  const notesArr    = [];
+  const repeatArr   = [];
+  const deadlineArr = [];
+  const st = entry.state || {};
+
+  if (st.notes) {
+    Object.keys(st.notes).forEach(k => {
+      if (st.notes[k]) notesArr.push(k + ': ' + st.notes[k]);
+    });
+  }
+  if (st.repeat) {
+    Object.keys(st.repeat).forEach(k => {
+      if (st.repeat[k] === 'Y') repeatArr.push(k);
+    });
+  }
+  if (st.deadline) {
+    Object.keys(st.deadline).forEach(k => {
+      if (st.deadline[k]) deadlineArr.push(k + ': ' + st.deadline[k]);
+    });
+  }
+
   const sheetsPayload = {
-    shop:       entry.shop,
-    date:       entry.date,
-    manager:    entry.manager,
-    savedAt:    entry.ts,
-    avgPct:     entry.pct,
-    bonusOk:    entry.bonusOk,
-    blockFail:  entry.blockingFail,
-    sectorData: sectorData,
-    state:      entry.state,
+    shop:        entry.shop,
+    date:        entry.date,
+    manager:     entry.manager,
+    savedAt:     entry.ts,
+    avgPct:      entry.pct,
+    bonusOk:     entry.bonusOk,
+    blockFail:   entry.blockingFail,
+    sectorData:  sectorData,
+    state:       entry.state,
+    notes:       notesArr.join(' | '),
+    repeatIssues: repeatArr.join(', '),
+    deadlines:   deadlineArr.join(' | '),
   };
   // Use GET with encoded data — works reliably with Apps Script (no CORS issues)
   const encoded = encodeURIComponent(JSON.stringify(sheetsPayload));
