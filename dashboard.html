@@ -269,8 +269,13 @@ function loadData() {
       allData = json.data;
       document.getElementById('lastUpd').textContent =
         'Обновено: ' + new Date().toLocaleTimeString('bg-BG') + ' · ' + allData.length + ' проверки';
-      buildShopFilter();
-      applyFilters();
+      try {
+        buildShopFilter();
+        applyFilters();
+      } catch(err) {
+        showError('Грешка при зареждане на данните: ' + err.message + '. Моля обновете страницата.');
+        console.error('Dashboard error:', err);
+      }
     } else { showError('Грешка: ' + (json&&json.message||'неизвестна')); }
   };
   const s = document.createElement('script');
@@ -316,9 +321,10 @@ function applyFilters() {
   const search = document.getElementById('fSearch').value.toLowerCase().trim();
 
   filtered = allData.filter(d => {
+    if (!d || !d.shop) return false;
     if (shop   && d.shop !== shop) return false;
-    if (from   && d.date < from) return false;
-    if (to     && d.date > to)   return false;
+    if (from   && (d.date||'') < from) return false;
+    if (to     && (d.date||'') > to)   return false;
     if (search && !matchSearch(d, search)) return false;
 
     const p = d.overallPct;
@@ -379,6 +385,7 @@ function renderTab(name) {
 
 // ── OVERVIEW ──────────────────────────────────────────────────────
 function renderOverview() {
+  try {
   if (!filtered.length) { document.getElementById('tabContent').innerHTML='<p class="empty">Няма данни за избраните филтри.</p>'; return; }
   const total  = filtered.length;
   const bonus  = filtered.filter(d=>d.bonusOk).length;
@@ -424,6 +431,10 @@ function renderOverview() {
   h += '</div>';
 
   document.getElementById('tabContent').innerHTML = h;
+  } catch(err) {
+    document.getElementById('tabContent').innerHTML = '<div class="error-box">Грешка при визуализация: ' + err.message + '</div>';
+    console.error('renderOverview error:', err);
+  }
 }
 
 function kpiCard(lbl, val, sub, cls) {
@@ -494,7 +505,7 @@ function renderHeatmap() {
   // Latest per shop
   const shopMap = {};
   filtered.forEach(d => { if(!shopMap[d.shop]||d.date>shopMap[d.shop].date) shopMap[d.shop]=d; });
-  const shops = Object.values(shopMap).sort((a,b)=>a.shop.localeCompare(b.shop,'bg'));
+  const shops = Object.values(shopMap).sort((a,b)=>(a.shop||'').localeCompare(b.shop||''));
 
   let h = '<div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>Магазин</th>';
   SEC_IDS.forEach(sid => { h += '<th>'+SEC_NAMES[sid]+'</th>'; });
