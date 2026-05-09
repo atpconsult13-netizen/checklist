@@ -490,7 +490,8 @@ function renderTable() {
 function thSort(col, label) {
   const on = sortCol===col;
   const icon = on ? (sortDir===1?'▲':'▼') : '↕';
-  return '<th class="'+(on?'sorted':'')+'" onclick="setSort(''+col+'')">'+label+' <span class="sort-icon">'+icon+'</span></th>';
+  const cls = on ? 'sorted' : '';
+  return '<th class="'+cls+'" onclick="setSort(\''+col+'\')" style="cursor:pointer">'+label+' <span class="sort-icon">'+icon+'</span></th>';
 }
 
 function setSort(col) {
